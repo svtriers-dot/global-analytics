@@ -4,9 +4,9 @@
  * Возможности:
  *  - 3 типа виджетов: KPI-карточка, линейный график, столбчатый график
  *  - Источники данных: World Bank (актуальные + история), FRED (временные ряды)
- *  - Добавление / удаление виджетов через модальное окно
+ *  - FAB-кнопка для добавления виджетов (зелёная, как в SitDeck)
+ *  - Сброс к виджетам по умолчанию
  *  - Конфигурация сохраняется в localStorage между сессиями
- *  - 6 виджетов по умолчанию при первом входе
  */
 
 import { useState } from 'react'
@@ -39,23 +39,31 @@ export default function DashboardPage() {
   }
 
   return (
-    <div style={{ padding: '20px 24px', minHeight: '100%' }}>
+    <div style={{ padding: '20px 24px', minHeight: '100%', position: 'relative' }}>
       {/* Toolbar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-        <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#e2e8f0' }}>Дашборд</h1>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={handleReset} style={secondaryBtnStyle} title="Сбросить к виджетам по умолчанию">↺ Сброс</button>
-          <button onClick={() => setShowModal(true)} style={primaryBtnStyle}>+ Добавить виджет</button>
-        </div>
+        <h1 style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>
+          ⠿ Дашборд
+        </h1>
+        <button
+          onClick={handleReset}
+          style={resetBtnStyle}
+          title="Сбросить к виджетам по умолчанию"
+        >
+          ↺ Сброс
+        </button>
       </div>
 
       {/* Пустой дашборд */}
       {widgets.length === 0 && (
-        <div style={{ textAlign: 'center', marginTop: 80, color: '#94a3b8' }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>📊</div>
-          <div style={{ fontSize: 15, marginBottom: 8, color: '#e2e8f0' }}>Дашборд пуст</div>
-          <div style={{ fontSize: 13, marginBottom: 24 }}>Добавь первый виджет, чтобы начать</div>
-          <button onClick={() => setShowModal(true)} style={primaryBtnStyle}>+ Добавить виджет</button>
+        <div style={{ textAlign: 'center', marginTop: 80, color: 'var(--color-text-muted)' }}>
+          <div style={{ fontSize: 40, marginBottom: 12, opacity: 0.4 }}>📊</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8, color: 'var(--color-text)' }}>
+            Дашборд пуст
+          </div>
+          <div style={{ fontSize: 13, marginBottom: 28 }}>
+            Нажмите <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>+</span> справа снизу, чтобы добавить виджет
+          </div>
         </div>
       )}
 
@@ -72,11 +80,21 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Счётчик виджетов */}
       {widgets.length > 0 && (
-        <div style={{ marginTop: 16, fontSize: 12, color: '#64748b', textAlign: 'center' }}>
-          {widgets.length} виджет{widgets.length === 1 ? '' : widgets.length < 5 ? 'а' : 'ов'} · конфигурация сохранена в браузере
+        <div style={{ marginTop: 16, fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.06em', color: 'var(--color-text-muted)', textAlign: 'center', opacity: 0.6, textTransform: 'uppercase' }}>
+          {widgets.length} widget{widgets.length !== 1 ? 's' : ''} · saved in browser
         </div>
       )}
+
+      {/* FAB — зелёная кнопка добавления (как в SitDeck) */}
+      <button
+        className="dashboard-fab"
+        onClick={() => setShowModal(true)}
+        title="Добавить виджет"
+      >
+        +
+      </button>
 
       {showModal && <AddWidgetModal onAdd={handleAdd} onClose={() => setShowModal(false)} />}
     </div>
@@ -85,16 +103,20 @@ export default function DashboardPage() {
 
 const gridStyle: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-  gap: 16,
+  gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+  gap: 12,
   alignItems: 'start',
 }
-const primaryBtnStyle: React.CSSProperties = {
-  padding: '8px 18px', borderRadius: 8, border: 'none',
-  background: '#1d4ed8', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-}
-const secondaryBtnStyle: React.CSSProperties = {
-  padding: '8px 14px', borderRadius: 8,
-  background: 'transparent', border: '1px solid #2d3348',
-  color: '#64748b', fontSize: 13, cursor: 'pointer',
+
+const resetBtnStyle: React.CSSProperties = {
+  padding: '6px 12px',
+  borderRadius: 'var(--radius)' as unknown as number,
+  background: 'transparent',
+  border: '1px solid var(--color-border)',
+  color: 'var(--color-text-muted)',
+  fontFamily: 'var(--font-mono)',
+  fontSize: 11,
+  letterSpacing: '0.06em',
+  cursor: 'pointer',
+  transition: 'all 0.15s',
 }

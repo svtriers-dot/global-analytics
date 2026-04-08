@@ -1,6 +1,6 @@
 /**
  * KPICard — карточка с одним числом.
- * Источники: World Bank (последнее значение индикатора для страны), FRED (последнее значение серии).
+ * Источники: World Bank (последнее значение), FRED (последнее значение серии).
  */
 
 import { useEffect, useState } from 'react'
@@ -20,7 +20,7 @@ function formatValue(value: number, unit: string): string {
     if (value >= 1_000)             return `$${(value / 1e3).toFixed(1)}K`
     return `$${value.toFixed(0)}`
   }
-  if (unit === '%') return `${value.toFixed(1)}%`
+  if (unit === '%') return `${value.toFixed(2)}%`
   if (value >= 1_000_000_000) return `${(value / 1e9).toFixed(1)}B`
   if (value >= 1_000_000)     return `${(value / 1e6).toFixed(1)}M`
   if (value >= 1_000)         return `${(value / 1e3).toFixed(1)}K`
@@ -97,16 +97,16 @@ export default function KPICard({ config, onRemove }: Props) {
   return (
     <div style={cardStyle}>
       <WidgetHeader title={config.title} onRemove={onRemove} />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '8px 16px 16px' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '12px 16px 16px' }}>
         {loading && <span style={mutedStyle}>Загрузка…</span>}
-        {error   && <span style={{ color: '#ef4444', fontSize: 13 }}>{error}</span>}
+        {error   && <span style={{ color: 'var(--color-danger)', fontSize: 12, textAlign: 'center' }}>{error}</span>}
         {!loading && !error && value !== null && (
           <>
-            <div style={{ fontSize: 36, fontWeight: 700, color: '#e2e8f0', letterSpacing: '-1px' }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 34, fontWeight: 600, color: 'var(--color-accent)', letterSpacing: '-1px', lineHeight: 1.1 }}>
               {formatValue(value, unit)}
             </div>
-            <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
-              {year}{year && dataSource ? ' · ' : ''}{dataSource}
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-text-muted)', marginTop: 8, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              {year}{year && dataSource ? '  ·  ' : ''}{dataSource}
             </div>
           </>
         )}
@@ -115,34 +115,26 @@ export default function KPICard({ config, onRemove }: Props) {
   )
 }
 
-// ── Shared header ─────────────────────────────────────────────────────
+// ── Shared header (SitDeck-style) ─────────────────────────────────────────
 
 export function WidgetHeader({ title, onRemove }: { title: string; onRemove: () => void }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px 0', flexShrink: 0 }}>
-      <span style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-        {title}
-      </span>
-      <button onClick={onRemove} title="Удалить виджет" style={{
-        background: 'none', border: 'none', cursor: 'pointer',
-        color: '#475569', fontSize: 16, padding: '0 0 0 8px', lineHeight: 1,
-        opacity: 0.5,
-      }}
-        onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
-        onMouseLeave={e => (e.currentTarget.style.opacity = '0.5')}
-      >
-        ×
-      </button>
+    <div className="widget-header">
+      <div className="widget-title">
+        <span className="widget-drag">⠿</span>
+        <span className="widget-title-text">{title}</span>
+      </div>
+      <button onClick={onRemove} className="widget-close" title="Удалить виджет">×</button>
     </div>
   )
 }
 
-// ── Shared styles ─────────────────────────────────────────────────────
+// ── Shared styles ─────────────────────────────────────────────────────────
 
 export const cardStyle: React.CSSProperties = {
-  background: '#1e2130',
-  border: '1px solid #2d3348',
-  borderRadius: 12,
+  background: 'var(--color-surface)',
+  border: '1px solid var(--color-border)',
+  borderRadius: 'var(--radius)' as unknown as number,
   display: 'flex',
   flexDirection: 'column',
   minHeight: 160,
@@ -150,6 +142,7 @@ export const cardStyle: React.CSSProperties = {
 }
 
 export const mutedStyle: React.CSSProperties = {
-  color: '#475569',
-  fontSize: 13,
+  color: 'var(--color-text-muted)',
+  fontSize: 12,
+  fontFamily: 'var(--font-mono)',
 }

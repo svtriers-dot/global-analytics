@@ -5,18 +5,35 @@
 }
 
 :root {
-  --color-bg: #0f1117;
-  --color-surface: #1a1d27;
-  --color-border: #2a2d3a;
-  --color-accent: #4f8ef7;
-  --color-accent-hover: #6ba3ff;
-  --color-text: #e8eaf0;
-  --color-text-muted: #7a7f9a;
-  --color-success: #4ade80;
-  --color-warning: #f59e0b;
-  --color-danger: #f87171;
-  --radius: 8px;
-  --navbar-height: 56px;
+  /* ── Backgrounds ─────────────────────────────────────── */
+  --color-bg:          #080c08;   /* near-black with green tint */
+  --color-surface:     #0d160d;   /* panel background */
+  --color-surface-2:   #131f13;   /* elevated surface */
+
+  /* ── Borders ─────────────────────────────────────────── */
+  --color-border:      #1c2e1c;   /* subtle green-tinted border */
+  --color-border-2:    #2a432a;   /* brighter border for focus */
+
+  /* ── Accent — emerald green ──────────────────────────── */
+  --color-accent:      #22c55e;
+  --color-accent-hover:#4ade80;
+  --color-accent-dim:  rgba(34, 197, 94, 0.12);
+
+  /* ── Text ────────────────────────────────────────────── */
+  --color-text:        #e0ebe0;   /* primary text, slight green tint */
+  --color-text-muted:  #5a7a5a;   /* secondary labels, timestamps */
+
+  /* ── Status colors ───────────────────────────────────── */
+  --color-success:     #22c55e;
+  --color-warning:     #f59e0b;
+  --color-danger:      #f87171;
+
+  /* ── Layout ──────────────────────────────────────────── */
+  --radius:            6px;
+  --navbar-height:     48px;
+
+  /* ── Typography ──────────────────────────────────────── */
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
 }
 
 html, body, #root {
@@ -41,3 +58,9 @@ button {
   cursor: pointer;
   font-family: inherit;
 }
+
+/* ── Scrollbar ─────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--color-bg); }
+::-webkit-scrollbar-thumb { background: var(--color-border-2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }

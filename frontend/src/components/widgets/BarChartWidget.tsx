@@ -19,8 +19,7 @@ interface Props {
 
 interface Point { name: string; value: number; code: string }
 
-const BAR_COLOR = '#818cf8'
-const BAR_TOP_COLOR = '#f59e0b'
+const BAR_TOP_COLOR = 'var(--color-warning)'      // жёлтый для #1 места
 
 function abbreviate(name: string): string {
   const map: Record<string, string> = {
@@ -59,7 +58,6 @@ export default function BarChartWidget({ config, onRemove }: Props) {
     fetchWbMapData(indicator)
       .then(res => {
         setUnit(res.meta.unit)
-        // Сортируем по убыванию, берём топ-15
         const top = [...res.data]
           .sort((a, b) => b.value - a.value)
           .slice(0, 15)
@@ -83,7 +81,7 @@ export default function BarChartWidget({ config, onRemove }: Props) {
       )}
       {error && (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <span style={{ color: '#ef4444', fontSize: 13 }}>{error}</span>
+          <span style={{ color: 'var(--color-danger)', fontSize: 12 }}>{error}</span>
         </div>
       )}
       {!loading && !error && data.length > 0 && (
@@ -96,7 +94,7 @@ export default function BarChartWidget({ config, onRemove }: Props) {
             >
               <XAxis
                 type="number"
-                tick={{ fill: '#64748b', fontSize: 9 }}
+                tick={{ fill: 'var(--color-text-muted)', fontSize: 9, fontFamily: 'var(--font-mono)' }}
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={v => formatVal(v, unit)}
@@ -105,19 +103,23 @@ export default function BarChartWidget({ config, onRemove }: Props) {
                 type="category"
                 dataKey="name"
                 width={68}
-                tick={{ fill: '#94a3b8', fontSize: 10 }}
+                tick={{ fill: 'var(--color-text)', fontSize: 10, fontFamily: 'var(--font-mono)' }}
                 tickLine={false}
                 axisLine={false}
               />
               <Tooltip
-                contentStyle={{ background: '#1a1f2e', border: '1px solid #2d3348', borderRadius: 8, fontSize: 12 }}
-                labelStyle={{ color: '#94a3b8' }}
+                contentStyle={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 12, fontFamily: 'var(--font-mono)' }}
+                labelStyle={{ color: 'var(--color-text-muted)' }}
                 itemStyle={{ color: BAR_TOP_COLOR }}
                 formatter={(v: number) => [formatVal(v, unit), '']}
               />
-              <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={18}>
+              <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={16}>
                 {data.map((_, i) => (
-                  <Cell key={i} fill={i === 0 ? BAR_TOP_COLOR : BAR_COLOR} fillOpacity={1 - i * 0.03} />
+                  <Cell
+                    key={i}
+                    fill={i === 0 ? '#f59e0b' : '#22c55e'}
+                    fillOpacity={i === 0 ? 1 : Math.max(0.35, 1 - i * 0.042)}
+                  />
                 ))}
               </Bar>
             </BarChart>

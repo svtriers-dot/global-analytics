@@ -95,35 +95,41 @@ export default function AddWidgetModal({ onAdd, onClose }: Props) {
     <div style={overlayStyle} onClick={onClose}>
       <div style={modalStyle} onClick={e => e.stopPropagation()}>
         {/* Заголовок */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h2 style={{ margin: 0, fontSize: 17, color: '#e2e8f0' }}>
-            {step === 'type' ? 'Тип виджета' : 'Настройка виджета'}
-          </h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, paddingBottom: 14, borderBottom: '1px solid var(--color-border)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>
+            ⠿ {step === 'type' ? 'Тип виджета' : 'Настройка виджета'}
+          </span>
           <button onClick={onClose} style={closeBtnStyle}>×</button>
         </div>
 
         {/* Шаг 1: выбор типа */}
         {step === 'type' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
             {([
-              { t: 'kpi',  emoji: '🔢', label: 'KPI',          desc: 'Одно актуальное значение' },
-              { t: 'line', emoji: '📈', label: 'Линейный',     desc: 'График за период' },
-              { t: 'bar',  emoji: '📊', label: 'Столбчатый',   desc: 'Топ стран по показателю' },
+              { t: 'kpi',  emoji: '🔢', label: 'KPI',        desc: 'Одно актуальное значение' },
+              { t: 'line', emoji: '📈', label: 'Линейный',   desc: 'График за период' },
+              { t: 'bar',  emoji: '📊', label: 'Столбчатый', desc: 'Топ стран' },
             ] as { t: WidgetType; emoji: string; label: string; desc: string }[]).map(({ t, emoji, label, desc }) => (
               <button
                 key={t}
                 onClick={() => { setType(t); setStep('config') }}
                 style={{
-                  background: '#252b3b', border: '1px solid #2d3348', borderRadius: 10,
-                  padding: '20px 12px', cursor: 'pointer', textAlign: 'center',
-                  transition: 'border-color 0.15s',
+                  background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', borderRadius: 8,
+                  padding: '18px 10px', cursor: 'pointer', textAlign: 'center',
+                  transition: 'border-color 0.15s, background 0.15s',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = '#38bdf8')}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = '#2d3348')}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = 'var(--color-accent)'
+                  e.currentTarget.style.background = 'var(--color-accent-dim)'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = 'var(--color-border)'
+                  e.currentTarget.style.background = 'var(--color-surface-2)'
+                }}
               >
-                <div style={{ fontSize: 28, marginBottom: 8 }}>{emoji}</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 4 }}>{label}</div>
-                <div style={{ fontSize: 11, color: '#64748b' }}>{desc}</div>
+                <div style={{ fontSize: 26, marginBottom: 8 }}>{emoji}</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600, color: 'var(--color-text)', letterSpacing: '0.06em', marginBottom: 4 }}>{label.toUpperCase()}</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>{desc}</div>
               </button>
             ))}
           </div>
@@ -162,7 +168,7 @@ export default function AddWidgetModal({ onAdd, onClose }: Props) {
               </Label>
             )}
 
-            {/* Страна (не для bar, не для FRED) */}
+            {/* Страна */}
             {source === 'world_bank' && type !== 'bar' && (
               <Label text="Страна">
                 <select value={country} onChange={e => setCountry(e.target.value)} style={selectStyle}>
@@ -185,13 +191,19 @@ export default function AddWidgetModal({ onAdd, onClose }: Props) {
             )}
 
             {/* Preview заголовка */}
-            <div style={{ background: '#1a1f2e', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#94a3b8' }}>
+            <div style={{
+              background: 'var(--color-surface-2)',
+              border: '1px solid var(--color-accent-dim)',
+              borderRadius: 6, padding: '10px 14px',
+              fontFamily: 'var(--font-mono)', fontSize: 11,
+              color: 'var(--color-text-muted)', letterSpacing: '0.04em',
+            }}>
               📌 {buildTitle()}
             </div>
 
             <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
               <button onClick={() => setStep('type')} style={secondaryBtnStyle}>← Назад</button>
-              <button onClick={handleAdd} style={primaryBtnStyle}>Добавить виджет</button>
+              <button onClick={handleAdd} style={primaryBtnStyle}>Добавить</button>
             </div>
           </div>
         )}
@@ -205,7 +217,7 @@ export default function AddWidgetModal({ onAdd, onClose }: Props) {
 function Label({ text, children }: { text: string; children: React.ReactNode }) {
   return (
     <div>
-      <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>{text}</div>
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>{text}</div>
       {children}
     </div>
   )
@@ -214,10 +226,12 @@ function Label({ text, children }: { text: string; children: React.ReactNode }) 
 function ToggleBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button onClick={onClick} style={{
-      padding: '6px 14px', borderRadius: 6, fontSize: 13, cursor: 'pointer',
-      background: active ? '#1e3a5f' : '#252b3b',
-      border: `1px solid ${active ? '#38bdf8' : '#2d3348'}`,
-      color: active ? '#38bdf8' : '#94a3b8',
+      padding: '6px 14px', borderRadius: 5, fontSize: 12, cursor: 'pointer',
+      fontFamily: 'var(--font-mono)',
+      background: active ? 'var(--color-accent-dim)' : 'var(--color-surface-2)',
+      border: `1px solid ${active ? 'var(--color-accent)' : 'var(--color-border)'}`,
+      color: active ? 'var(--color-accent)' : 'var(--color-text-muted)',
+      transition: 'all 0.15s',
     }}>
       {children}
     </button>
@@ -228,34 +242,42 @@ function ToggleBtn({ active, onClick, children }: { active: boolean; onClick: ()
 
 const overlayStyle: React.CSSProperties = {
   position: 'fixed', inset: 0,
-  background: 'rgba(0,0,0,0.6)',
+  background: 'rgba(0,0,0,0.7)',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   zIndex: 1000,
+  backdropFilter: 'blur(2px)',
 }
 const modalStyle: React.CSSProperties = {
-  background: '#1e2130',
-  border: '1px solid #2d3348',
-  borderRadius: 14,
+  background: 'var(--color-surface)',
+  border: '1px solid var(--color-border)',
+  borderRadius: 10,
   padding: 24,
   width: 420,
   maxWidth: '95vw',
-  boxShadow: '0 24px 48px rgba(0,0,0,0.5)',
+  boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
 }
 const closeBtnStyle: React.CSSProperties = {
-  background: 'none', border: 'none', fontSize: 22, cursor: 'pointer',
-  color: '#64748b', padding: '0 4px', lineHeight: 1,
+  background: 'none', border: 'none', fontSize: 20, cursor: 'pointer',
+  color: 'var(--color-text-muted)', padding: '0 4px', lineHeight: 1,
+  opacity: 0.5,
+  transition: 'opacity 0.15s',
 }
 const selectStyle: React.CSSProperties = {
-  width: '100%', padding: '8px 10px', borderRadius: 6,
-  background: '#252b3b', border: '1px solid #2d3348',
-  color: '#e2e8f0', fontSize: 13, outline: 'none',
+  width: '100%', padding: '8px 10px', borderRadius: 5,
+  background: 'var(--color-surface-2)', border: '1px solid var(--color-border)',
+  color: 'var(--color-text)', fontSize: 13, outline: 'none',
+  fontFamily: 'inherit',
 }
 const primaryBtnStyle: React.CSSProperties = {
-  flex: 1, padding: '10px 0', borderRadius: 8, border: 'none',
-  background: '#1d4ed8', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+  flex: 1, padding: '10px 0', borderRadius: 6, border: 'none',
+  background: 'var(--color-accent)', color: '#000',
+  fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700,
+  letterSpacing: '0.08em', cursor: 'pointer',
+  transition: 'background 0.15s',
 }
 const secondaryBtnStyle: React.CSSProperties = {
-  padding: '10px 18px', borderRadius: 8,
-  background: '#252b3b', border: '1px solid #2d3348',
-  color: '#94a3b8', fontSize: 14, cursor: 'pointer',
+  padding: '10px 18px', borderRadius: 6,
+  background: 'var(--color-surface-2)', border: '1px solid var(--color-border)',
+  color: 'var(--color-text-muted)',
+  fontFamily: 'var(--font-mono)', fontSize: 11, cursor: 'pointer',
 }

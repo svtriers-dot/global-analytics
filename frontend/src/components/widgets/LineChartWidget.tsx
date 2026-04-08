@@ -84,7 +84,7 @@ export default function LineChartWidget({ config, onRemove }: Props) {
       )}
       {error && (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <span style={{ color: '#ef4444', fontSize: 13 }}>{error}</span>
+          <span style={{ color: 'var(--color-danger)', fontSize: 12 }}>{error}</span>
         </div>
       )}
       {!loading && !error && data.length === 0 && (
@@ -96,40 +96,40 @@ export default function LineChartWidget({ config, onRemove }: Props) {
         <div style={{ flex: 1, padding: '8px 8px 4px', minHeight: 180 }}>
           <ResponsiveContainer width="100%" height={180}>
             <LineChart data={data} margin={{ top: 4, right: 12, bottom: 0, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2d3348" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
               <XAxis
                 dataKey="date"
-                tick={{ fill: '#64748b', fontSize: 10 }}
+                tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontFamily: 'var(--font-mono)' }}
                 tickLine={false}
                 axisLine={false}
                 interval="preserveStartEnd"
                 tickFormatter={d => d.slice(0, 4)}
               />
               <YAxis
-                tick={{ fill: '#64748b', fontSize: 10 }}
+                tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontFamily: 'var(--font-mono)' }}
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={formatYAxis}
                 width={48}
               />
               <Tooltip
-                contentStyle={{ background: '#1a1f2e', border: '1px solid #2d3348', borderRadius: 8, fontSize: 12 }}
-                labelStyle={{ color: '#94a3b8' }}
-                itemStyle={{ color: '#38bdf8' }}
+                contentStyle={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 12, fontFamily: 'var(--font-mono)' }}
+                labelStyle={{ color: 'var(--color-text-muted)' }}
+                itemStyle={{ color: 'var(--color-accent)' }}
                 formatter={(v: number) => [`${v}${unit ? ' ' + unit : ''}`, '']}
               />
               <Line
                 type="monotone"
                 dataKey="value"
-                stroke="#38bdf8"
-                strokeWidth={2}
+                stroke="var(--color-accent)"
+                strokeWidth={1.5}
                 dot={false}
-                activeDot={{ r: 4, fill: '#38bdf8' }}
+                activeDot={{ r: 4, fill: 'var(--color-accent)', stroke: 'var(--color-bg)', strokeWidth: 2 }}
               />
             </LineChart>
           </ResponsiveContainer>
           {unit && (
-            <div style={{ textAlign: 'right', fontSize: 10, color: '#475569', paddingRight: 12 }}>{unit}</div>
+            <div style={{ textAlign: 'right', fontSize: 10, color: 'var(--color-text-muted)', paddingRight: 12, fontFamily: 'var(--font-mono)', letterSpacing: '0.06em' }}>{unit}</div>
           )}
         </div>
       )}
