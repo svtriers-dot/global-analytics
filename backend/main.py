@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from core.config import settings
-from routers import health, geo, finance, news, status
+from routers import health, geo, finance, news, status, disasters
 
 
 @asynccontextmanager
@@ -33,4 +33,5 @@ app.include_router(health.router, tags=["health"])
 app.include_router(geo.router,     prefix="/api/geo",     tags=["geo"])
 app.include_router(finance.router, prefix="/api/finance", tags=["finance"])
 app.include_router(news.router,    prefix="/api/news",    tags=["news"])
-app.include_router(status.router,  prefix="/api",         tags=["status"])
+app.include_router(status.router,    prefix="/api",            tags=["status"])
+app.include_router(disasters.router, prefix="/api/disasters", tags=["disasters"])

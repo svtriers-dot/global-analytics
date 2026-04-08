@@ -22,11 +22,18 @@ _WB_AGGREGATE_ISO3 = {
 # scale: "log"    — логарифмическая шкала (ВВП, население — log-нормальное распределение)
 #         "linear" — линейная шкала (инфляция, безработица — уже в узком диапазоне)
 INDICATORS = {
-    "NY.GDP.PCAP.CD":  {"label": "ВВП на душу населения", "unit": "$",  "scale": "log"},
-    "FP.CPI.TOTL.ZG":  {"label": "Инфляция",              "unit": "%",  "scale": "linear"},
-    "SL.UEM.TOTL.ZS":  {"label": "Безработица",            "unit": "%",  "scale": "linear"},
-    "SP.POP.TOTL":     {"label": "Население",              "unit": "",   "scale": "log"},
-    "NY.GDP.MKTP.CD":  {"label": "ВВП (всего)",            "unit": "$",  "scale": "log"},
+    # Макроэкономика
+    "NY.GDP.PCAP.CD":  {"label": "ВВП на душу населения", "unit": "$",   "scale": "log",    "domain": "macro"},
+    "FP.CPI.TOTL.ZG":  {"label": "Инфляция",              "unit": "%",   "scale": "linear", "domain": "macro"},
+    "SL.UEM.TOTL.ZS":  {"label": "Безработица",           "unit": "%",   "scale": "linear", "domain": "macro"},
+    "SP.POP.TOTL":     {"label": "Население",              "unit": "",    "scale": "log",    "domain": "macro"},
+    "NY.GDP.MKTP.CD":  {"label": "ВВП (всего)",           "unit": "$",   "scale": "log",    "domain": "macro"},
+    # Торговля и логистика
+    "IS.SHP.GOOD.TU":  {"label": "Морской трафик (TEU)",  "unit": "TEU", "scale": "log",    "domain": "trade"},
+    "TG.VAL.TOTL.GD.ZS": {"label": "Торговля (% ВВП)",   "unit": "%",   "scale": "linear", "domain": "trade"},
+    # Риски
+    "IC.PI.PSCT.IN":   {"label": "Политическая стабильность", "unit": "", "scale": "linear", "domain": "risk"},
+    "SH.DYN.MORT":     {"label": "Детская смертность",    "unit": "‰",   "scale": "linear", "domain": "risk"},
 }
 
 
