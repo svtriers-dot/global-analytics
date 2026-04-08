@@ -108,7 +108,7 @@ export default function HeatMapPage() {
 
     const layer = L.geoJSON(geoJson, {
       style: (feature) => {
-        const iso3  = feature?.properties?.ISO_A3 as string | undefined
+        const iso3  = feature?.properties?.['ISO3166-1-Alpha-3'] as string | undefined
         const value = iso3 ? valueMap[iso3] : undefined
         return {
           fillColor:   getColor(value, mapData.min, mapData.max),
@@ -118,9 +118,9 @@ export default function HeatMapPage() {
         }
       },
       onEachFeature: (feature, featureLayer) => {
-        const iso3  = feature.properties?.ISO_A3 as string
-        const iso2  = feature.properties?.ISO_A2 as string
-        const name  = feature.properties?.ADMIN  as string
+        const iso3  = feature.properties?.['ISO3166-1-Alpha-3'] as string
+        const iso2  = feature.properties?.['ISO3166-1-Alpha-2'] as string
+        const name  = feature.properties?.name  as string
         const value = valueMap[iso3]
 
         featureLayer.on({
