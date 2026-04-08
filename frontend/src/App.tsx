@@ -3,6 +3,7 @@ import HeatMapPage from './pages/HeatMapPage'
 import DashboardPage from './pages/DashboardPage'
 import ComparePage from './pages/ComparePage'
 import NewsPage from './pages/NewsPage'
+import StatusPage from './pages/StatusPage'
 import './styles/app.css'
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
             <NavLink to="/dashboard">Дашборд</NavLink>
             <NavLink to="/compare">Сравнение</NavLink>
             <NavLink to="/news">Новости</NavLink>
+            <NavLink to="/status" style={{ fontSize: "12px", opacity: 0.6 }}>⚙️ Статус</NavLink>
           </div>
         </nav>
 
@@ -25,6 +27,7 @@ function App() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/compare" element={<ComparePage />} />
             <Route path="/news" element={<NewsPage />} />
+            <Route path="/status" element={<StatusPage />} />
           </Routes>
         </main>
       </div>

@@ -13,12 +13,20 @@
 
 ## Текущий статус
 
-**Этап 1 — Тепловая карта** ✅ ЗАВЕРШЁН и задеплоен на Railway
+**Этап 2 — Расширение данных** 🔧 В РАБОТЕ (код написан, ожидает деплоя)
 
 - ✅ Этап 0: скаффолдинг, репо на GitHub
-- ✅ Backend: `services/world_bank.py` + `routers/geo.py` (эндпоинты `/map-data`, `/country/{iso2}`, `/indicators`)
-- ✅ Frontend: `HeatMapPage.tsx` с Leaflet, цветовым градиентом, тултипами, `CountrySidebar`
-- ✅ Деплой на Railway: frontend + backend оба Online
+- ✅ Этап 1: тепловая карта (Leaflet + World Bank), задеплоена на Railway
+- ✅ `models/timeseries.py` — TimescaleDB модель (`time_series_points`, `data_source_status`)
+- ✅ `alembic/` — миграция `0001_create_timeseries_tables.py`
+- ✅ `services/alpha_vantage.py` — форекс + котировки (требует ALPHA_VANTAGE_API_KEY)
+- ✅ `services/fred.py` — ставки ЦБ, M2, CPI (требует FRED_API_KEY)
+- ✅ `services/gdelt.py` — тональность новостей по странам (без ключа, работает сразу)
+- ✅ `tasks/fetch_data.py` — Celery задачи с расписанием (beat_schedule)
+- ✅ `routers/finance.py` — `/api/finance/timeseries`, `/api/finance/rates`, `/api/finance/series`
+- ✅ `routers/news.py` — `/api/news/sentiment/{country}`, `/api/news/sentiment` (все страны)
+- ✅ `routers/status.py` — `/api/status` (дашборд состояния источников)
+- ✅ `frontend/StatusPage.tsx` — страница `/status` с карточками источников
 
 ### Живые URL
 
