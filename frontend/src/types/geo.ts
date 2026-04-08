@@ -38,3 +38,40 @@ export type SelectedCountry = {
   name: string
   value?: number
 }
+
+// --- Сравнение стран (Этап 4) ---
+
+export type CountryOption = {
+  iso2: string
+  name: string
+  region: string
+}
+
+export type CompareSeriesPoint = {
+  year: string
+  value: number
+}
+
+export type CompareCountrySeries = {
+  name: string
+  series: CompareSeriesPoint[]
+}
+
+export type CompareSeriesResponse = {
+  indicator: string
+  label: string
+  unit: string
+  countries: Record<string, CompareCountrySeries>
+}
+
+export type CompareSummaryEntry = {
+  label: string
+  unit: string
+  value: number
+  year: string
+}
+
+export type CompareSummaryResponse = Record<string, {
+  name: string
+  indicators: Record<string, CompareSummaryEntry>
+}>

@@ -143,6 +143,122 @@ async def fetch_country_history(
     }
 
 
+async def fetch_all_countries() -> list:
+    """Список всех стран для селектора сравнения."""
+    url = f"{settings.WORLD_BANK_BASE_URL}/country/all"
+    params = {"format": "json", "per_page": 400}
+
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        response = await client.get(url, params=params)
+        response.raise_for_status()
+        raw = response.json()
+
+    if not isinstance(raw, list) or len(raw) < 2:
+        return []
+
+    countries = []
+    for item in raw[1]:
+        iso2 = item.get("iso2Code", "")
+        name = item.get("name", "")
+        region = item.get("region", {}).get("value", "")
+        # Пропускаем агрегаты (регионы, группы стран)
+        if not iso2 or len(iso2) != 2 or region == "Aggregates" or not region:
+            continue
+        countries.append({"iso2": iso2, "name": name, "region": region})
+
+    return sorted(countries, key=lambda x: x["name"])
+
+
+async def fetch_compare_series(
+    country_iso2_list: list,
+    indicator_code: str,
+    years: int = 10,
+) -> dict:
+    """
+    Временные ряды одного индикатора для нескольких стран.
+    Используется для сравнительного мультилинейного графика.
+    """
+    current_year = 2024
+    start_year   = current_year - years
+    date_range   = f"{start_year}:{current_year}"
+
+    result = {}
+
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        for iso2 in country_iso2_list:
+            url = (
+                f"{settings.WORLD_BANK_BASE_URL}/country/{iso2}"
+                f"/indicator/{indicator_code}"
+            )
+            params = {
+                "format":   "json",
+                "date":     date_range,
+                "per_page": years + 5,
+            }
+            try:
+                response = await client.get(url, params=params)
+                raw = response.json()
+                if not isinstance(raw, list) or len(raw) < 2 or not raw[1]:
+                    result[iso2] = {"name": iso2, "series": []}
+                    continue
+
+                country_name = raw[1][0]["country"]["value"]
+                series = []
+                for item in sorted(raw[1], key=lambda x: x["date"]):
+                    if item.get("value") is None:
+                        continue
+                    series.append({
+                        "year":  item["date"],
+                        "value": round(float(item["value"]), 2),
+                    })
+                result[iso2] = {"name": country_name, "series": series}
+            except Exception:
+                result[iso2] = {"name": iso2, "series": []}
+
+    meta = INDICATORS.get(indicator_code, {"label": indicator_code, "unit": ""})
+    return {
+        "indicator": indicator_code,
+        "label":     meta["label"],
+        "unit":      meta["unit"],
+        "countries": result,
+    }
+
+
+async def fetch_compare_summary(country_iso2_list: list) -> dict:
+    """
+    Сводная таблица: актуальные значения всех ключевых показателей
+    для нескольких стран — для side-by-side сравнения.
+    """
+    result = {iso2: {"name": iso2, "indicators": {}} for iso2 in country_iso2_list}
+
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        for iso2 in country_iso2_list:
+            for code, meta in INDICATORS.items():
+                url = (
+                    f"{settings.WORLD_BANK_BASE_URL}/country/{iso2}"
+                    f"/indicator/{code}"
+                )
+                params = {"format": "json", "mrv": 1, "per_page": 5}
+                try:
+                    response = await client.get(url, params=params)
+                    raw = response.json()
+                    if isinstance(raw, list) and len(raw) > 1 and raw[1]:
+                        item = raw[1][0]
+                        # Обновляем имя страны из ответа
+                        result[iso2]["name"] = item["country"]["value"]
+                        if item.get("value") is not None:
+                            result[iso2]["indicators"][code] = {
+                                "label": meta["label"],
+                                "unit":  meta["unit"],
+                                "value": round(float(item["value"]), 2),
+                                "year":  item["date"],
+                            }
+                except Exception:
+                    continue
+
+    return result
+
+
 async def fetch_country_details(country_iso2: str) -> dict:
     """
     Загружает несколько ключевых показателей для одной страны (карточка по клику).
