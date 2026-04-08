@@ -7,6 +7,17 @@ import httpx
 from typing import Optional
 from core.config import settings
 
+# Коды World Bank для агрегатов/регионов — не являются отдельными странами.
+# Их нет в GeoJSON, поэтому при матчинге они промахиваются и только
+# искажают шкалу цвета.
+_WB_AGGREGATE_ISO3 = {
+    "AFE", "AFW", "ARB", "CSS", "CEB", "EAP", "EAR", "EAS", "ECA", "ECE", "ECS",
+    "EMU", "EUU", "FCS", "HIC", "HPC", "IBD", "IBT", "IDA", "IDB", "IDX", "LAC",
+    "LCN", "LDC", "LIC", "LMC", "LMY", "LTE", "MEA", "MIC", "MNA", "NAC", "OED",
+    "OSS", "PRE", "PSS", "PST", "SAS", "SSA", "SSF", "SST", "TEA", "TEC", "TLA",
+    "TMN", "TSA", "TSS", "UMC", "WLD",
+}
+
 # Индикаторы которые поддерживаем на тепловой карте
 INDICATORS = {
     "NY.GDP.PCAP.CD":  {"label": "ВВП на душу населения", "unit": "$"},
@@ -49,6 +60,10 @@ async def fetch_indicator(indicator_code: str, year: Optional[int] = None) -> di
         if not iso3 or len(iso3) != 3:
             continue
 
+        # Пропускаем агрегаты World Bank (регионы, группы стран)
+        if iso3 in _WB_AGGREGATE_ISO3:
+            continue
+
         data.append({
             "country_code": iso3,
             "country_name": item["country"]["value"],
@@ -59,17 +74,21 @@ async def fetch_indicator(indicator_code: str, year: Optional[int] = None) -> di
     if not data:
         return {"indicator": indicator_code, "data": [], "min": 0, "max": 0, "year": None}
 
-    values = [d["value"] for d in data]
-    min_val = round(min(values), 2)
-    max_val = round(max(values), 2)
+    values = sorted([d["value"] for d in data])
+    n = len(values)
+
+    # Используем P5–P95 для шкалы цвета, чтобы выбросы (Monaco, Bermuda)
+    # не сжимали все остальные страны в синий диапазон.
+    p5  = round(values[max(0, int(n * 0.05))], 2)
+    p95 = round(values[min(n - 1, int(n * 0.95))], 2)
     latest_year = data[0]["year"] if data else None
 
     return {
         "indicator": indicator_code,
         "meta": INDICATORS.get(indicator_code, {"label": indicator_code, "unit": ""}),
         "year": latest_year,
-        "min": min_val,
-        "max": max_val,
+        "min": p5,    # P5 вместо абсолютного min
+        "max": p95,   # P95 вместо абсолютного max
         "data": data,
     }
 
