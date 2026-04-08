@@ -8,7 +8,7 @@ from routers import health, geo, finance, news
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print(f"🚀 GlobalAnalytics API запущен: {settings.ENV}")
+    print(f"🚀 GlobalAnalytics API запущен: {settings.APP_ENV}")
     yield
     print("🛑 Завершение работы")
 

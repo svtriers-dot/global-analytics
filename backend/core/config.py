@@ -1,9 +1,15 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
 
 
 class Settings(BaseSettings):
-    ENV: str = "development"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+        env_file_encoding="utf-8",
+    )
+
+    APP_ENV: str = "development"
     DATABASE_URL: str = "postgresql://postgres:password@localhost:5432/globalanalytics"
     REDIS_URL: str = "redis://localhost:6379"
     ALLOWED_ORIGINS: List[str] = ["http://localhost:3000", "https://your-frontend.railway.app"]
@@ -14,10 +20,6 @@ class Settings(BaseSettings):
     FRED_API_KEY: str = ""
     NEWS_API_KEY: str = ""
     GDELT_BASE_URL: str = "https://api.gdeltproject.org/api/v2"
-
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
 
 
 settings = Settings()
