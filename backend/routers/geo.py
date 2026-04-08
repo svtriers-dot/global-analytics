@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query, HTTPException
 from typing import Optional
-from services.world_bank import fetch_indicator, fetch_country_details, INDICATORS
+from services.world_bank import fetch_indicator, fetch_country_details, fetch_country_history, INDICATORS
 
 router = APIRouter()
 
@@ -39,3 +39,23 @@ async def get_country_card(country_iso2: str):
     if len(country_iso2) != 2:
         raise HTTPException(status_code=400, detail="Нужен ISO2-код страны (2 буквы)")
     return await fetch_country_details(country_iso2.upper())
+
+
+@router.get("/country/{country_iso2}/history/{indicator}")
+async def get_country_history(
+    country_iso2: str,
+    indicator: str,
+    years: int = Query(10, ge=1, le=30, description="Глубина истории в годах"),
+):
+    """
+    Временной ряд одного индикатора для одной страны.
+    Используется виджетами дашборда (линейный график).
+    """
+    if len(country_iso2) != 2:
+        raise HTTPException(status_code=400, detail="Нужен ISO2-код страны (2 буквы)")
+    if indicator not in INDICATORS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Неизвестный индикатор. Доступные: {list(INDICATORS.keys())}"
+        )
+    return await fetch_country_history(country_iso2.upper(), indicator, years)

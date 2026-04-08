@@ -74,6 +74,53 @@ async def fetch_indicator(indicator_code: str, year: Optional[int] = None) -> di
     }
 
 
+async def fetch_country_history(
+    country_iso2: str,
+    indicator_code: str,
+    years: int = 10,
+) -> dict:
+    """
+    Временной ряд одного индикатора для одной страны.
+    Используется виджетами дашборда (линейный график).
+    """
+    current_year = 2024
+    start_year   = current_year - years
+    date_range   = f"{start_year}:{current_year}"
+
+    url = f"{settings.WORLD_BANK_BASE_URL}/country/{country_iso2}/indicator/{indicator_code}"
+    params = {
+        "format":   "json",
+        "date":     date_range,
+        "per_page": years + 5,
+    }
+
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        response = await client.get(url, params=params)
+        response.raise_for_status()
+        raw = response.json()
+
+    if not isinstance(raw, list) or len(raw) < 2 or not raw[1]:
+        return {"indicator": indicator_code, "country": country_iso2, "series": []}
+
+    series = []
+    for item in sorted(raw[1], key=lambda x: x["date"]):
+        if item.get("value") is None:
+            continue
+        series.append({
+            "year":  item["date"],
+            "value": round(float(item["value"]), 2),
+        })
+
+    meta = INDICATORS.get(indicator_code, {"label": indicator_code, "unit": ""})
+    return {
+        "indicator":    indicator_code,
+        "label":        meta["label"],
+        "unit":         meta["unit"],
+        "country":      country_iso2.upper(),
+        "series":       series,
+    }
+
+
 async def fetch_country_details(country_iso2: str) -> dict:
     """
     Загружает несколько ключевых показателей для одной страны (карточка по клику).
