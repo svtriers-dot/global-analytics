@@ -51,9 +51,9 @@ export default function DashboardPage() {
 
       {/* Пустой дашборд */}
       {widgets.length === 0 && (
-        <div style={{ textAlign: 'center', marginTop: 80, color: '#475569' }}>
+        <div style={{ textAlign: 'center', marginTop: 80, color: '#94a3b8' }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>📊</div>
-          <div style={{ fontSize: 15, marginBottom: 8 }}>Дашборд пуст</div>
+          <div style={{ fontSize: 15, marginBottom: 8, color: '#e2e8f0' }}>Дашборд пуст</div>
           <div style={{ fontSize: 13, marginBottom: 24 }}>Добавь первый виджет, чтобы начать</div>
           <button onClick={() => setShowModal(true)} style={primaryBtnStyle}>+ Добавить виджет</button>
         </div>
@@ -64,16 +64,16 @@ export default function DashboardPage() {
         <div style={gridStyle}>
           {widgets.map(widget => {
             const remove = () => handleRemove(widget.id)
-            if (widget.type === 'kpi')  return <div key={widget.id} style={{ gridColumn: 'span 1' }}><KPICard config={widget} onRemove={remove} /></div>
-            if (widget.type === 'line') return <div key={widget.id} style={{ gridColumn: 'span 2' }}><LineChartWidget config={widget} onRemove={remove} /></div>
-            if (widget.type === 'bar')  return <div key={widget.id} style={{ gridColumn: 'span 2' }}><BarChartWidget config={widget} onRemove={remove} /></div>
+            if (widget.type === 'kpi')  return <div key={widget.id} className="widget-col-1"><KPICard config={widget} onRemove={remove} /></div>
+            if (widget.type === 'line') return <div key={widget.id} className="widget-col-2"><LineChartWidget config={widget} onRemove={remove} /></div>
+            if (widget.type === 'bar')  return <div key={widget.id} className="widget-col-2"><BarChartWidget config={widget} onRemove={remove} /></div>
             return null
           })}
         </div>
       )}
 
       {widgets.length > 0 && (
-        <div style={{ marginTop: 16, fontSize: 12, color: '#334155', textAlign: 'center' }}>
+        <div style={{ marginTop: 16, fontSize: 12, color: '#64748b', textAlign: 'center' }}>
           {widgets.length} виджет{widgets.length === 1 ? '' : widgets.length < 5 ? 'а' : 'ов'} · конфигурация сохранена в браузере
         </div>
       )}

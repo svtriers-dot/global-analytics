@@ -1,10 +1,10 @@
 /**
  * KPICard — карточка с одним числом.
- * Источники: World Bank (последнее значение индикатора для страны).
+ * Источники: World Bank (последнее значение индикатора для страны), FRED (последнее значение серии).
  */
 
 import { useEffect, useState } from 'react'
-import { fetchWbCountryCard } from '../../api/finance'
+import { fetchWbCountryCard, fetchFredSeries } from '../../api/finance'
 import type { WidgetConfig } from '../../types/dashboard'
 
 interface Props {
@@ -31,10 +31,48 @@ export default function KPICard({ config, onRemove }: Props) {
   const [value, setValue] = useState<number | null>(null)
   const [unit, setUnit] = useState('')
   const [year, setYear] = useState('')
+  const [dataSource, setDataSource] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    setValue(null)
+    setError(null)
+    setLoading(true)
+
+    // ── FRED source ───────────────────────────────────────────────────
+    if (config.source === 'fred') {
+      if (!config.seriesId) {
+        setError('Не задан идентификатор серии')
+        setLoading(false)
+        return
+      }
+      fetchFredSeries(config.seriesId, '1y')
+        .then(res => {
+          if (res.error) {
+            setError(
+              res.error === 'fred_key_missing'
+                ? 'FRED API ключ не настроен'
+                : 'Ошибка загрузки'
+            )
+            return
+          }
+          if (res.series.length === 0) {
+            setError('Нет данных')
+            return
+          }
+          const last = res.series[res.series.length - 1]
+          setValue(last.value)
+          setUnit(res.unit)
+          setYear(last.date.slice(0, 7))
+          setDataSource('FRED')
+        })
+        .catch(() => setError('Ошибка загрузки'))
+        .finally(() => setLoading(false))
+      return
+    }
+
+    // ── World Bank source ─────────────────────────────────────────────
     if (!config.country || !config.indicator) {
       setError('Не задана страна или индикатор')
       setLoading(false)
@@ -47,13 +85,14 @@ export default function KPICard({ config, onRemove }: Props) {
           setValue(ind.value)
           setUnit(ind.unit)
           setYear(ind.year)
+          setDataSource('World Bank')
         } else {
           setError('Нет данных')
         }
       })
       .catch(() => setError('Ошибка загрузки'))
       .finally(() => setLoading(false))
-  }, [config.country, config.indicator])
+  }, [config.source, config.country, config.indicator, config.seriesId])
 
   return (
     <div style={cardStyle}>
@@ -66,7 +105,9 @@ export default function KPICard({ config, onRemove }: Props) {
             <div style={{ fontSize: 36, fontWeight: 700, color: '#e2e8f0', letterSpacing: '-1px' }}>
               {formatValue(value, unit)}
             </div>
-            <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>{year} · World Bank</div>
+            <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
+              {year}{year && dataSource ? ' · ' : ''}{dataSource}
+            </div>
           </>
         )}
       </div>

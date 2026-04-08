@@ -50,7 +50,13 @@ export default function LineChartWidget({ config, onRemove }: Props) {
     const load = async () => {
       if (config.source === 'fred' && config.seriesId) {
         const res = await fetchFredSeries(config.seriesId, PERIOD_FRED[period] ?? '5y')
-        if (res.error) throw new Error(res.error)
+        if (res.error) {
+          throw new Error(
+            res.error === 'fred_key_missing'
+              ? 'FRED API ключ не настроен'
+              : res.error
+          )
+        }
         setUnit(res.unit)
         setData(res.series.map(p => ({ date: p.date, value: p.value })))
       } else if (config.source === 'world_bank' && config.country && config.indicator) {

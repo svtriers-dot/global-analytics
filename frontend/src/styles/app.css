@@ -339,6 +339,16 @@
   padding-bottom: 8px;
 }
 
+/* ── Dashboard grid ──────────────────────────────────────────────────────── */
+
+.widget-col-1 { grid-column: span 1; }
+.widget-col-2 { grid-column: span 2; }
+
+/* На узких экранах — все виджеты в 1 колонку */
+@media (max-width: 640px) {
+  .widget-col-2 { grid-column: span 1; }
+}
+
 /* ── Утилиты ──────────────────────────────────────────────────────────────── */
 
 @keyframes spin {
