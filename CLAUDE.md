@@ -13,12 +13,29 @@
 
 ## Текущий статус
 
-**Этап 1 — Тепловая карта** (в процессе)
+**Этап 1 — Тепловая карта** ✅ ЗАВЕРШЁН и задеплоен на Railway
+
 - ✅ Этап 0: скаффолдинг, репо на GitHub
 - ✅ Backend: `services/world_bank.py` + `routers/geo.py` (эндпоинты `/map-data`, `/country/{iso2}`, `/indicators`)
 - ✅ Frontend: `HeatMapPage.tsx` с Leaflet, цветовым градиентом, тултипами, `CountrySidebar`
+- ✅ Деплой на Railway: frontend + backend оба Online
 
-Следующий шаг: запустить локально и проверить карту в браузере, затем задеплоить на Railway.
+### Живые URL
+
+- **Frontend**: https://responsible-joy-production-ceb3.up.railway.app
+- **Backend API**: https://global-analytics-production.up.railway.app
+- **Health check**: https://global-analytics-production.up.railway.app/health
+
+### Решённые проблемы при деплое
+
+| Проблема | Решение |
+|---|---|
+| TypeScript ошибка `import.meta.env` | Создан `frontend/src/vite-env.d.ts` с `/// <reference types="vite/client" />` |
+| Backend 502 Bad Gateway | Railway proxy был настроен на порт 8000, а uvicorn слушает 8080 — исправлено в Settings → Networking |
+| GeoJSON свойства `undefined` | datasets/geo-countries использует `name`/`ISO3166-1-Alpha-3`/`ISO3166-1-Alpha-2`, а не `ADMIN`/`ISO_A3`/`ISO_A2` |
+| `settings.ENV` = `/etc/profile` | Railway устанавливает shell-переменную `ENV` — переименовано в `APP_ENV`, переход на pydantic-settings v2 `SettingsConfigDict` |
+
+Следующий шаг: Этап 2 — расширение данных (Alpha Vantage, FRED, NewsAPI, GDELT).
 
 ## Принятые решения
 
