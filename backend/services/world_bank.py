@@ -19,12 +19,14 @@ _WB_AGGREGATE_ISO3 = {
 }
 
 # Индикаторы которые поддерживаем на тепловой карте
+# scale: "log"    — логарифмическая шкала (ВВП, население — log-нормальное распределение)
+#         "linear" — линейная шкала (инфляция, безработица — уже в узком диапазоне)
 INDICATORS = {
-    "NY.GDP.PCAP.CD":  {"label": "ВВП на душу населения", "unit": "$"},
-    "FP.CPI.TOTL.ZG":  {"label": "Инфляция", "unit": "%"},
-    "SL.UEM.TOTL.ZS":  {"label": "Безработица", "unit": "%"},
-    "SP.POP.TOTL":     {"label": "Население", "unit": ""},
-    "NY.GDP.MKTP.CD":  {"label": "ВВП (всего)", "unit": "$"},
+    "NY.GDP.PCAP.CD":  {"label": "ВВП на душу населения", "unit": "$",  "scale": "log"},
+    "FP.CPI.TOTL.ZG":  {"label": "Инфляция",              "unit": "%",  "scale": "linear"},
+    "SL.UEM.TOTL.ZS":  {"label": "Безработица",            "unit": "%",  "scale": "linear"},
+    "SP.POP.TOTL":     {"label": "Население",              "unit": "",   "scale": "log"},
+    "NY.GDP.MKTP.CD":  {"label": "ВВП (всего)",            "unit": "$",  "scale": "log"},
 }
 
 
@@ -83,9 +85,10 @@ async def fetch_indicator(indicator_code: str, year: Optional[int] = None) -> di
     p95 = round(values[min(n - 1, int(n * 0.95))], 2)
     latest_year = data[0]["year"] if data else None
 
+    meta = INDICATORS.get(indicator_code, {"label": indicator_code, "unit": "", "scale": "linear"})
     return {
         "indicator": indicator_code,
-        "meta": INDICATORS.get(indicator_code, {"label": indicator_code, "unit": ""}),
+        "meta": meta,
         "year": latest_year,
         "min": p5,    # P5 вместо абсолютного min
         "max": p95,   # P95 вместо абсолютного max

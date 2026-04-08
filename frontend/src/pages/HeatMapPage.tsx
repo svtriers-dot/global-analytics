@@ -17,9 +17,25 @@ const LAYERS = [
 ]
 
 // Цветовой градиент: тёмно-синий → голубой → зелёный → жёлтый → красный
-function getColor(value: number | undefined, min: number, max: number): string {
+function getColor(
+  value: number | undefined,
+  min: number,
+  max: number,
+  scale: 'linear' | 'log' = 'linear',
+): string {
   if (value === undefined) return '#1e2130'
-  const t = Math.max(0, Math.min(1, (value - min) / (max - min || 1)))
+
+  let t: number
+  if (scale === 'log' && value > 0 && min > 0 && max > min) {
+    // Логарифмическая шкала: равномерно распределяет страны с log-нормальным
+    // распределением (ВВП, население) по всему цветовому диапазону
+    const logV   = Math.log(Math.max(value, min))
+    const logMin = Math.log(min)
+    const logMax = Math.log(max)
+    t = Math.max(0, Math.min(1, (logV - logMin) / (logMax - logMin)))
+  } else {
+    t = Math.max(0, Math.min(1, (value - min) / (max - min || 1)))
+  }
   const stops: [number, number, number][] = [
     [15,  52,  96],   // 0.0 тёмно-синий
     [26,  95,  180],  // 0.25 синий
@@ -111,7 +127,7 @@ export default function HeatMapPage() {
         const iso3  = feature?.properties?.['ISO3166-1-Alpha-3'] as string | undefined
         const value = iso3 ? valueMap[iso3] : undefined
         return {
-          fillColor:   getColor(value, mapData.min, mapData.max),
+          fillColor:   getColor(value, mapData.min, mapData.max, mapData.meta.scale ?? 'linear'),
           fillOpacity: 0.85,
           color:       '#0f1117',
           weight:      0.5,

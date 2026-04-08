@@ -13,7 +13,7 @@ export type CountryDataPoint = {
 
 export type MapDataResponse = {
   indicator: string
-  meta: { label: string; unit: string }
+  meta: { label: string; unit: string; scale?: 'linear' | 'log' }
   year: string | null
   min: number
   max: number
