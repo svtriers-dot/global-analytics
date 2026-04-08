@@ -75,7 +75,8 @@ _ISO2_TO_NAME = {
 
 
 async def _fetch_with_retry(client: httpx.AsyncClient, url: str, params: dict, retries: int = 2) -> httpx.Response:
-    """Выполняет запрос с повтором при 429 (rate limit)."""
+    """Выполняет запрос с повтором при 429 (rate limit) или таймауте."""
+    last_exc: Exception | None = None
     for attempt in range(retries + 1):
         try:
             resp = await client.get(url, params=params)
@@ -87,12 +88,13 @@ async def _fetch_with_retry(client: httpx.AsyncClient, url: str, params: dict, r
                     continue
                 resp.raise_for_status()
             return resp
-        except httpx.TimeoutException:
+        except httpx.TimeoutException as e:
+            last_exc = e
             if attempt < retries:
                 await asyncio.sleep(2)
                 continue
-            raise
-    return resp
+    # Все попытки исчерпаны
+    raise last_exc or httpx.TimeoutException("GDELT timeout after retries")
 
 
 async def fetch_country_sentiment(

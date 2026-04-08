@@ -4,8 +4,12 @@
 """
 
 import httpx
+import asyncio
+import logging
 from typing import Optional
 from core.config import settings
+
+logger = logging.getLogger(__name__)
 
 # Коды World Bank для агрегатов/регионов — не являются отдельными странами.
 # Их нет в GeoJSON, поэтому при матчинге они промахиваются и только
@@ -231,37 +235,76 @@ async def fetch_compare_series(
     }
 
 
+async def _fetch_indicator_for_countries(
+    client: httpx.AsyncClient,
+    countries_str: str,
+    code: str,
+    meta: dict,
+) -> dict:
+    """
+    Загружает один индикатор для нескольких стран за один запрос.
+    World Bank API поддерживает '/country/US;DE;CN/indicator/CODE' (multi-country batch).
+    Возвращает dict: {iso2: {name, value, year}}
+    """
+    url = f"{settings.WORLD_BANK_BASE_URL}/country/{countries_str}/indicator/{code}"
+    params = {"format": "json", "mrv": 1, "per_page": 50}
+    try:
+        response = await client.get(url, params=params)
+        raw = response.json()
+        if not isinstance(raw, list) or len(raw) < 2 or not raw[1]:
+            return {}
+        result = {}
+        for item in raw[1]:
+            if item.get("value") is None:
+                continue
+            # WB batch-ответ: country.id — ISO2-код страны
+            country_id = (item.get("country") or {}).get("id", "").upper()
+            country_name = (item.get("country") or {}).get("value", country_id)
+            if not country_id:
+                continue
+            result[country_id] = {
+                "name":  country_name,
+                "value": round(float(item["value"]), 2),
+                "year":  item["date"],
+            }
+        return result
+    except Exception as e:
+        logger.warning("WB batch fetch error for %s: %s", code, e)
+        return {}
+
+
 async def fetch_compare_summary(country_iso2_list: list) -> dict:
     """
     Сводная таблица: актуальные значения всех ключевых показателей
     для нескольких стран — для side-by-side сравнения.
-    """
-    result = {iso2: {"name": iso2, "indicators": {}} for iso2 in country_iso2_list}
 
-    async with httpx.AsyncClient(timeout=15.0) as client:
-        for iso2 in country_iso2_list:
-            for code, meta in INDICATORS.items():
-                url = (
-                    f"{settings.WORLD_BANK_BASE_URL}/country/{iso2}"
-                    f"/indicator/{code}"
-                )
-                params = {"format": "json", "mrv": 1, "per_page": 5}
-                try:
-                    response = await client.get(url, params=params)
-                    raw = response.json()
-                    if isinstance(raw, list) and len(raw) > 1 and raw[1]:
-                        item = raw[1][0]
-                        # Обновляем имя страны из ответа
-                        result[iso2]["name"] = item["country"]["value"]
-                        if item.get("value") is not None:
-                            result[iso2]["indicators"][code] = {
-                                "label": meta["label"],
-                                "unit":  meta["unit"],
-                                "value": round(float(item["value"]), 2),
-                                "year":  item["date"],
-                            }
-                except Exception:
-                    continue
+    Оптимизация: вместо N_countries × N_indicators последовательных запросов
+    делаем N_indicators параллельных batch-запросов через WB multi-country API.
+    5 стран × 8 показателей = 8 запросов вместо 40.
+    """
+    result: dict = {iso2: {"name": iso2, "indicators": {}} for iso2 in country_iso2_list}
+    countries_str = ";".join(country_iso2_list)  # "US;DE;CN;BR;IN"
+
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        tasks = [
+            _fetch_indicator_for_countries(client, countries_str, code, meta)
+            for code, meta in INDICATORS.items()
+        ]
+        batch_results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    for (code, meta), batch in zip(INDICATORS.items(), batch_results):
+        if isinstance(batch, Exception) or not isinstance(batch, dict):
+            continue
+        for iso2, entry in batch.items():
+            if iso2 not in result:
+                continue
+            result[iso2]["name"] = entry["name"]
+            result[iso2]["indicators"][code] = {
+                "label": meta["label"],
+                "unit":  meta["unit"],
+                "value": entry["value"],
+                "year":  entry["year"],
+            }
 
     return result
 

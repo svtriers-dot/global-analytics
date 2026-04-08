@@ -111,6 +111,7 @@ export default function HeatMapPage() {
   const [activeOverlays,  setActiveOverlays]  = useState<Set<OverlayId>>(new Set())
   const [mapData,         setMapData]         = useState<MapDataResponse | null>(null)
   const [loading,         setLoading]         = useState(false)
+  const [geoJsonReady,    setGeoJsonReady]    = useState(false)   // вместо setInterval-полинга
   const [overlayLoading,  setOverlayLoading]  = useState<Set<OverlayId>>(new Set())
   const [selectedCountry, setSelectedCountry] = useState<SelectedCountry | null>(null)
 
@@ -129,9 +130,18 @@ export default function HeatMapPage() {
     return () => { map.remove(); mapRef.current = null }
   }, [])
 
-  // Загрузка GeoJSON
+  // Загрузка GeoJSON — один раз, устанавливаем флаг после загрузки
   useEffect(() => {
-    fetch(GEOJSON_URL).then(r => r.json()).then(d => { geoJsonRef.current = d })
+    fetch(GEOJSON_URL)
+      .then(r => r.json())
+      .then(d => {
+        geoJsonRef.current = d
+        setGeoJsonReady(true)  // сигнализируем что GeoJSON готов
+      })
+      .catch(() => {
+        // GeoJSON не загрузился — карта останется пустой, но приложение не упадёт
+        console.error('Не удалось загрузить GeoJSON стран')
+      })
   }, [])
 
   // Загрузка данных при смене слоя
@@ -184,13 +194,10 @@ export default function HeatMapPage() {
     geoLayerRef.current = layer
   }, [mapData])
 
-  useEffect(() => { redrawLayer() }, [redrawLayer])
+  // Перерисовываем когда готовы и mapData, и GeoJSON
   useEffect(() => {
-    const iv = setInterval(() => {
-      if (geoJsonRef.current && mapData) { redrawLayer(); clearInterval(iv) }
-    }, 200)
-    return () => clearInterval(iv)
-  }, [mapData, redrawLayer])
+    if (geoJsonReady && mapData) redrawLayer()
+  }, [geoJsonReady, mapData, redrawLayer])
 
   // ── Оверлей: морские маршруты ──────────────────────────────────────────────
   const toggleShippingRoutes = useCallback((enable: boolean) => {

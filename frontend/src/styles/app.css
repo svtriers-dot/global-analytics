@@ -124,14 +124,18 @@
 .tag-remove {
   background: none;
   border: none;
-  padding: 0 0 0 2px;
+  padding: 0 2px;
   color: var(--color-text-muted);
   font-size: 15px;
   line-height: 1;
   cursor: pointer;
-  transition: color 0.15s;
+  border-radius: 3px;
+  transition: color 0.15s, background 0.15s;
 }
-.tag-remove:hover { color: var(--color-danger); }
+.tag-remove:hover {
+  color: var(--color-danger);
+  background: rgba(248, 113, 113, 0.12);
+}
 
 .country-input {
   flex: 1;
@@ -142,6 +146,11 @@
   color: var(--color-text);
   font-size: 14px;
   padding: 2px 0;
+  transition: opacity 0.15s;
+}
+.country-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 .country-input::placeholder { color: var(--color-text-muted); }
 
@@ -328,4 +337,28 @@
   opacity: 0.6;
   text-align: center;
   padding-bottom: 8px;
+}
+
+/* ── Утилиты ──────────────────────────────────────────────────────────────── */
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Skeleton-пульс для будущих loading state */
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.8; }
+}
+
+/* Более специфичные селекторы для таблицы сравнения */
+.compare-table .th-indicator {
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+/* Hover-эффект для строк таблицы */
+.compare-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
 }

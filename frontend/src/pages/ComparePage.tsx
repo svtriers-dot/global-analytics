@@ -63,7 +63,6 @@ function exportChartAsPNG(chartEl: HTMLDivElement | null) {
   if (!svg) return
 
   const clone = svg.cloneNode(true) as SVGElement
-  // Явный белый фон внутри SVG, чтобы экспорт не был прозрачным
   const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
   rect.setAttribute('width', '100%')
   rect.setAttribute('height', '100%')
@@ -72,7 +71,9 @@ function exportChartAsPNG(chartEl: HTMLDivElement | null) {
 
   const svgData = new XMLSerializer().serializeToString(clone)
   const canvas  = document.createElement('canvas')
-  const ctx     = canvas.getContext('2d')!
+  const ctx     = canvas.getContext('2d')
+  if (!ctx) return  // браузер не поддерживает canvas (крайне редко)
+
   canvas.width  = svg.clientWidth  || 800
   canvas.height = svg.clientHeight || 400
 
@@ -86,6 +87,7 @@ function exportChartAsPNG(chartEl: HTMLDivElement | null) {
     link.href      = canvas.toDataURL('image/png')
     link.click()
   }
+  img.onerror = () => console.error('Не удалось конвертировать SVG в PNG')
   img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)))
 }
 
@@ -119,10 +121,11 @@ function exportSummaryAsCSV(
 // ─── Компонент ───────────────────────────────────────────────────────────────
 
 export default function ComparePage() {
-  const [allCountries, setAllCountries] = useState<CountryOption[]>([])
-  const [selected,     setSelected]     = useState<CountryOption[]>([])
-  const [indicator,    setIndicator]    = useState('NY.GDP.PCAP.CD')
-  const [years,        setYears]        = useState(10)
+  const [allCountries,     setAllCountries]     = useState<CountryOption[]>([])
+  const [countriesLoading, setCountriesLoading] = useState(true)
+  const [selected,         setSelected]         = useState<CountryOption[]>([])
+  const [indicator,        setIndicator]        = useState('NY.GDP.PCAP.CD')
+  const [years,            setYears]            = useState(10)
 
   const [seriesData,  setSeriesData]  = useState<CompareSeriesResponse | null>(null)
   const [summaryData, setSummaryData] = useState<CompareSummaryResponse | null>(null)
@@ -137,7 +140,11 @@ export default function ComparePage() {
 
   // Загрузка списка стран при монтировании
   useEffect(() => {
-    fetchAllCountries().then(setAllCountries)
+    setCountriesLoading(true)
+    fetchAllCountries()
+      .then(setAllCountries)
+      .catch(() => {/* список не загрузился — пользователь увидит пустой дропдаун */})
+      .finally(() => setCountriesLoading(false))
   }, [])
 
   // Закрытие дропдауна при клике вне него
@@ -224,7 +231,12 @@ export default function ComparePage() {
                 value={search}
                 onChange={e => { setSearch(e.target.value); setDropdownOpen(true) }}
                 onFocus={() => setDropdownOpen(true)}
-                placeholder={selected.length === 0 ? 'Выберите страны (2–5)...' : '+ Добавить...'}
+                disabled={countriesLoading}
+                placeholder={
+                  countriesLoading
+                    ? 'Загрузка стран...'
+                    : selected.length === 0 ? 'Выберите страны (2–5)...' : '+ Добавить страну...'
+                }
               />
             )}
           </div>

@@ -22,13 +22,22 @@ function formatValue(value: number, unit: string): string {
 export default function CountrySidebar({ country, onClose }: Props) {
   const [card, setCard] = useState<CountryCardResponse | null>(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!country) { setCard(null); return }
+    if (!country) { setCard(null); setError(null); return }
     setLoading(true)
+    setError(null)
+    setCard(null)
+
+    // Таймаут 10 секунд — если API не ответил, показываем ошибку
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 10_000)
+
     fetchCountryCard(country.iso2)
-      .then(setCard)
-      .finally(() => setLoading(false))
+      .then(data => { setCard(data); setError(null) })
+      .catch(() => setError('Не удалось загрузить данные по стране'))
+      .finally(() => { setLoading(false); clearTimeout(timer) })
   }, [country?.iso2])
 
   if (!country) return null
@@ -76,16 +85,31 @@ export default function CountrySidebar({ country, onClose }: Props) {
 
       {/* Показатели */}
       {loading && (
-        <div style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>Загрузка данных...</div>
+        <div style={{ color: 'var(--color-text-muted)', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>⟳</span>
+          Загрузка данных...
+        </div>
       )}
 
-      {!loading && card && Object.keys(card.indicators).length === 0 && (
+      {!loading && error && (
+        <div style={{
+          color: 'var(--color-danger)', fontSize: 13,
+          padding: '10px 12px',
+          background: 'rgba(248,113,113,0.08)',
+          borderRadius: 'var(--radius)',
+          border: '1px solid rgba(248,113,113,0.2)',
+        }}>
+          {error}
+        </div>
+      )}
+
+      {!loading && !error && card && Object.keys(card.indicators).length === 0 && (
         <div style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
           Нет данных по этой стране
         </div>
       )}
 
-      {!loading && card && Object.entries(card.indicators).map(([code, ind]) => (
+      {!loading && !error && card && Object.entries(card.indicators).map(([code, ind]) => (
         <div key={code} style={{
           background: 'var(--color-bg)',
           borderRadius: 'var(--radius)',
